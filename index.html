@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Смета за 5 минут</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <main class="page">
+    <div class="document-sheet">
+    <header class="page-header">
+      <span class="eyebrow">РАСЧЁТ СТОИМОСТИ · <span data-currency>₸</span></span>
+      <h1>Смета за 5 минут</h1>
+      <p>Добавьте позиции — стоимость каждой строки и общий итог посчитаются автоматически.</p>
+    </header>
+    <h1 class="print-only" id="print-title"></h1>
+
+    <section class="card" aria-labelledby="details-title">
+      <h2 id="details-title"><span class="section-index" aria-hidden="true">01</span>Реквизиты</h2>
+      <div class="details-grid">
+        <label>От кого<input type="text" name="sender" placeholder="Ваше имя или компания"></label>
+        <label>Для кого<input type="text" name="recipient" placeholder="Имя или компания клиента"></label>
+        <label class="estimate-meta">Номер сметы<input type="text" name="estimate-number" placeholder="Например, 001"></label>
+        <label class="estimate-meta">Дата<input type="date" name="estimate-date" id="estimate-date"></label>
+      </div>
+    </section>
+
+    <section class="card positions-card" aria-labelledby="positions-title">
+      <div class="section-heading">
+        <h2 id="positions-title"><span class="section-index" aria-hidden="true">02</span>Позиции</h2>
+        <span class="section-note">Валюта сумм: <span data-currency>₸</span></span>
+      </div>
+      <table>
+        <caption class="visually-hidden">Позиции сметы: количество, цена и стоимость</caption>
+        <thead>
+          <tr><th scope="col">Наименование</th><th scope="col">Количество</th><th scope="col">Единица</th><th scope="col">Цена, <span data-currency>₸</span></th><th scope="col" class="amount-heading">Сумма</th><th scope="col"><span class="visually-hidden">Удаление</span></th></tr>
+        </thead>
+        <tbody id="positions"></tbody>
+      </table>
+      <button type="button" class="add-button" id="add-position">+ Добавить позицию</button>
+      <p class="keyboard-hint">Enter в последней строке добавляет новую позицию.</p>
+      <div class="calculation-settings">
+        <label>Скидка, %<input id="discount-rate" type="text" inputmode="decimal" value="0" autocomplete="off"></label>
+        <label>НДС, %<input id="vat-rate" type="text" inputmode="decimal" value="0" autocomplete="off"></label>
+        <label>Валюта<select id="currency"><option value="₸">₸</option><option value="₽">₽</option><option value="$">$</option><option value="€">€</option></select></label>
+      </div>
+    </section>
+
+    <section class="total-card" aria-labelledby="total-title">
+      <dl class="summary">
+        <div class="summary-row"><dt>Сумма</dt><dd><output id="subtotal">0 ₸</output></dd></div>
+        <div class="summary-row" id="discount-row" hidden><dt>Скидка</dt><dd><output id="discount-amount">0 ₸</output></dd></div>
+        <div class="summary-row" id="discounted-row" hidden><dt>Сумма со скидкой</dt><dd><output id="discounted-amount">0 ₸</output></dd></div>
+        <div class="summary-row" id="vat-row" hidden><dt>НДС</dt><dd><output id="vat-amount">0 ₸</output></dd></div>
+        <div class="summary-row summary-total"><dt id="total-title">Итого к оплате</dt><dd><output id="total" aria-live="polite" aria-atomic="true">0 ₸</output></dd></div>
+        <div class="summary-words" id="amount-words-row" hidden><dt>Сумма прописью:</dt><dd><output id="amount-words"></output></dd></div>
+      </dl>
+    </section>
+    <section class="card comment-card" aria-labelledby="comment-title">
+      <label id="comment-title" for="comment"><span class="section-index" aria-hidden="true">03</span>Комментарий</label>
+      <textarea id="comment" rows="4" placeholder="Сроки, условия оплаты"></textarea>
+    </section>
+    <p class="print-only signature">Подпись ____________________</p>
+    </div>
+    <div class="print-actions">
+      <div class="action-buttons">
+        <button type="button" class="add-button" id="save-pdf">Сохранить PDF</button>
+        <button type="button" class="secondary-button" id="copy-whatsapp">Скопировать для WhatsApp</button>
+        <button type="button" class="secondary-button" id="new-estimate">Новая смета</button>
+      </div>
+      <p id="copy-status" class="keyboard-hint" role="status"></p>
+      <div id="manual-copy" hidden>
+        <label for="share-text">Не удалось скопировать автоматически. Скопируйте текст вручную:</label>
+        <textarea id="share-text" rows="10" readonly></textarea>
+      </div>
+      <p id="draft-status" class="keyboard-hint" role="status"></p>
+      <p class="keyboard-hint">В окне печати выберите «Сохранить как PDF».</p>
+    </div>
+  </main>
+
+  <template id="position-template">
+    <tr>
+      <td data-label="Наименование"><label class="visually-hidden">Наименование</label><input class="item-name" type="text" placeholder="Товар или услуга"></td>
+      <td data-label="Количество"><label class="visually-hidden">Количество</label><input class="item-quantity" type="text" inputmode="decimal" placeholder="0" autocomplete="off"></td>
+      <td data-label="Единица"><label class="visually-hidden">Единица</label><select class="item-unit"><option value="шт">шт</option><option value="час">час</option><option value="услуга">услуга</option></select></td>
+      <td data-label="Цена, ₸"><label class="visually-hidden">Цена, ₸</label><input class="item-price" type="text" inputmode="decimal" placeholder="0" autocomplete="off"></td>
+      <td data-label="Сумма" class="row-amount"><output class="item-amount">0 ₸</output></td>
+      <td class="remove-cell"><button type="button" class="remove-button" aria-label="Удалить позицию" title="Удалить позицию">✕</button></td>
+    </tr>
+  </template>
+</body>
+</html>
